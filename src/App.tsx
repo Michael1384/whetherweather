@@ -1215,76 +1215,59 @@ export default function App() {
   // Visitor counter state
   const [visitCount, setVisitCount] = useState(0);
   
-  // Initialize visitor count on app load with global API
+  // Initialize visitor count on app load with GoatCounter
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        // Method 1: Try CountAPI with your site-specific key
+        // Method 1: Try GoatCounter API (you'll need to set up a free account)
+        // Go to https://www.goatcounter.com/ and create a free account
+        // Replace 'your-site-code' with your actual GoatCounter site code
         try {
-          const response = await fetch('https://api.countapi.xyz/hit/whetherweather-app/global-visits', {
-            method: 'GET',
+          const response = await fetch('https://whetherweather.goatcounter.com/api/v0/stats/total', {
+            headers: {
+              'Authorization': 'Bearer YOUR_API_TOKEN', // You'll need to set this up
+            }
           });
-          const data = await response.json();
           
-          if (data && typeof data.value === 'number') {
-            setVisitCount(data.value);
-            console.log(`Global visit count: ${data.value}`);
-            return; // Success, exit
-          }
-        } catch (error) {
-          console.log('CountAPI failed, trying alternatives...');
-        }
-        
-        // Method 2: Try a different counter API
-        try {
-          const response = await fetch(`https://api.countapi.xyz/get/whetherweather-app/global-visits`);
-          const data = await response.json();
-          
-          if (data && typeof data.value === 'number') {
-            // Increment the counter
-            const hitResponse = await fetch('https://api.countapi.xyz/hit/whetherweather-app/global-visits');
-            const hitData = await hitResponse.json();
-            
-            if (hitData && typeof hitData.value === 'number') {
-              setVisitCount(hitData.value);
-              console.log(`Global visit count (hit): ${hitData.value}`);
-              return; // Success, exit
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.count) {
+              setVisitCount(data.count);
+              console.log(`GoatCounter visits: ${data.count}`);
+              return;
             }
           }
         } catch (error) {
-          console.log('Second CountAPI attempt failed...');
+          console.log('GoatCounter API not configured yet, using simple counter...');
         }
         
-        // Method 3: Use visitor tracking with localStorage + session storage for global-like behavior
-        const sessionKey = 'whetherweather_session_visit';
-        const globalKey = 'whetherweather_global_visits';
+        // Method 2: Simple, honest localStorage counter starting from 0
+        const globalKey = 'whetherweather_honest_counter';
+        const sessionKey = 'whetherweather_session_' + new Date().toDateString();
         
-        // Check if this is a new session
-        const hasVisitedThisSession = sessionStorage.getItem(sessionKey);
+        // Check if this is a unique visit today
+        const hasVisitedToday = localStorage.getItem(sessionKey);
         
-        if (!hasVisitedThisSession) {
-          // Mark this session as visited
-          sessionStorage.setItem(sessionKey, 'true');
+        if (!hasVisitedToday) {
+          // This is a new unique visit today
+          const currentCount = parseInt(localStorage.getItem(globalKey) || '0');
+          const newCount = currentCount + 1;
           
-          // Increment global counter
-          const currentCount = localStorage.getItem(globalKey);
-          const count = currentCount ? parseInt(currentCount, 10) : 1247; // Start with realistic base
-          const newCount = count + 1;
           localStorage.setItem(globalKey, newCount.toString());
+          localStorage.setItem(sessionKey, 'true');
           setVisitCount(newCount);
-          console.log(`New session visit count: ${newCount}`);
+          
+          console.log(`New visit counted: ${newCount}`);
         } else {
-          // Return existing count for this session
-          const currentCount = localStorage.getItem(globalKey);
-          const count = currentCount ? parseInt(currentCount, 10) : 1247;
-          setVisitCount(count);
-          console.log(`Returning session visit count: ${count}`);
+          // Return existing count for today
+          const currentCount = parseInt(localStorage.getItem(globalKey) || '0');
+          setVisitCount(currentCount);
+          console.log(`Returning visit count: ${currentCount}`);
         }
         
       } catch (error) {
         console.error('Error tracking visit:', error);
-        // Emergency fallback - show a realistic number
-        setVisitCount(1250 + Math.floor(Math.random() * 50));
+        setVisitCount(0);
       }
     };
     
