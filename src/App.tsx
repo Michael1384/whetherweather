@@ -305,7 +305,7 @@ function HeaderNav({ visible, currentPage, setPage, surveyResults }) {
           className="text-3xl font-extrabold text-black cursor-pointer pl-2 select-none flex items-baseline"
           onClick={() => currentPage !== "home" && setPage("home")}
         >
-          WhetherWeather<span className="text-base font-normal ml-1">v0.9</span>
+          WhetherWeather<span className="text-base font-normal ml-1">2025 v0.9</span>
         </div>
         <ul className="flex gap-6 text-base">
           <li>
