@@ -481,10 +481,10 @@ function AboutPage() {
             </h2>
             <div className="space-y-3 text-white leading-relaxed text-sm">
               <p>
-                WhetherWeather is a simple web app that tells you what the weather will probably be like months or even years in the future. Unlike your phone's weather app that only shows you the next week, we use NASA's historical weather data and smart computer algorithms to make educated guesses about weather patterns way ahead of time.
+                WhetherWeather is a simple web app which makes predictions on what the weather will be like months or even years in the future, at any point on earth. Unlike your phone's weather app that only shows you the next week, we use NASA's historical weather data, churn it through some computer algorithms, and make educated guesses about weather patterns way ahead of time.
               </p>
               <p>
-                Perfect for planning weddings, vacations, outdoor events, or just satisfying your curiosity about whether it'll be sunny for your birthday next year. The predictions come with confidence levels so you know how reliable they are. It's free, easy to use, and helps you plan your future with weather insights you can't get anywhere else.
+                WhetherWeather is perfect for planning weddings, vacations, outdoor events, or just satisfying your curiosity about whether it'll be sunny for your birthday next year. The predictions come with confidence levels so you know how reliable they are. It's free, easy to use, and helps you plan your future with weather insights you can't get anywhere else 🙂.
               </p>
             </div>
           </div>
