@@ -1223,7 +1223,7 @@ export default function App() {
         // Go to https://www.goatcounter.com/ and create a free account
         // Replace 'your-site-code' with your actual GoatCounter site code
         try {
-          const response = await fetch('https://whetherweather.goatcounter.com/api/v0/stats/total', {
+          const response = await fetch('https://michaelde.goatcounter.com/api/v0/stats/total', {
             headers: {
               'Authorization': 'Bearer YOUR_API_TOKEN', // You'll need to set this up
             }
