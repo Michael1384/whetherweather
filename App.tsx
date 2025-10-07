@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import { MapPin, Cloud as CloudIcon, Search, Calendar, CloudRain, CloudSnow, Wind, Droplets, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const OPENAI_KEY = "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";
+const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 function Cloud() {
   return (
