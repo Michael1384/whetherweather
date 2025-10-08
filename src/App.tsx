@@ -1066,7 +1066,7 @@ function HeroSection() {
   );
 }
 
-function FooterSection({ visitCount, todayVisits, setPage }: { visitCount: number; todayVisits: number; setPage: (page: string) => void }) {
+function FooterSection({ setPage }: { setPage: (page: string) => void }) {
   return (
     <footer className="w-full bg-white/80 border-t border-slate-200 py-4 flex flex-col md:flex-row items-center justify-between px-6 gap-3">
       <div className="flex items-center gap-2">
@@ -1081,16 +1081,8 @@ function FooterSection({ visitCount, todayVisits, setPage }: { visitCount: numbe
           rel="noopener noreferrer"
           className="text-pink-600 font-semibold hover:underline text-sm"
         >
-          @weweather.au
+          @mich
         </a>
-      </div>
-      
-      {/* Visitor Counter */}
-      <div className="flex items-center gap-2 text-slate-600 text-xs">
-        <span className="bg-slate-100 px-2 py-1 rounded-full">
-          👁️ This website has been visited <span className="font-bold text-slate-800">{visitCount.toLocaleString()}</span> times
-          {todayVisits > 0 && <span className="text-slate-500"> ({todayVisits} {todayVisits === 1 ? 'visit' : 'visits'} today)</span>}
-        </span>
       </div>
       
       <div className="flex gap-4 text-slate-600 text-xs">
@@ -1212,77 +1204,6 @@ export default function App() {
   const [place, setPlace] = useState("Sydney");
   const [headerVisible, setHeaderVisible] = useState(true);
   const [currentPage, setPage] = useState("home");
-  
-  // Visitor counter state
-  const [visitCount, setVisitCount] = useState(0);
-  const [todayVisits, setTodayVisits] = useState(0);
-  
-  // GoatCounter visitor tracking
-  useEffect(() => {
-    const initializeVisitorCount = async () => {
-      // Option 1: Try Netlify Analytics API (if site ID and token available)
-      const netlifyToken = import.meta.env.VITE_NETLIFY_TOKEN;
-      const netlifySiteId = import.meta.env.VITE_NETLIFY_SITE_ID;
-      
-      if (netlifyToken && netlifySiteId) {
-        try {
-          console.log('� Fetching visitor count from Netlify Analytics...');
-          
-          const response = await fetch(`https://api.netlify.com/api/v1/sites/${netlifySiteId}/analytics/page_views`, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${netlifyToken}`,
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('� Netlify Analytics data:', data);
-            // Netlify returns page views data
-            const totalViews = data.data?.reduce((sum: number, day: any) => sum + day.count, 0) || 0;
-            setVisitCount(totalViews);
-            console.log(`✅ Netlify Analytics success: ${totalViews} total page views`);
-            return;
-          } else {
-            console.log(`❌ Netlify Analytics error: ${response.status} ${response.statusText}`);
-          }
-        } catch (error) {
-          console.log('❌ Netlify Analytics failed:', error);
-        }
-      }
-      
-      // Fallback: Simple localStorage counter
-      console.log('📊 Using simple visit counter (Netlify Analytics not configured)');
-      const COUNTER_KEY = 'whetherweather_visits';
-      const SESSION_KEY = 'whetherweather_session';
-      
-      // Check if this is a new session
-      const currentSession = sessionStorage.getItem(SESSION_KEY);
-      const sessionId = Date.now().toString();
-      
-      if (!currentSession) {
-        // New session - increment counter
-        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
-        const newCount = currentCount + 1;
-        
-        localStorage.setItem(COUNTER_KEY, newCount.toString());
-        sessionStorage.setItem(SESSION_KEY, sessionId);
-        setVisitCount(newCount);
-        setTodayVisits(1); // At least 1 visit today (this session)
-        
-        console.log(`📊 New visit counted: ${newCount}`);
-      } else {
-        // Existing session - show current count
-        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
-        setVisitCount(currentCount);
-        setTodayVisits(0); // Don't show "today" for returning session
-        console.log(`📊 Current visit count: ${currentCount}`);
-      }
-    };
-    
-    initializeVisitorCount();
-  }, []);
   
   // Store previous page to detect navigation away from results
   const [previousPage, setPreviousPage] = useState("home");
@@ -2765,7 +2686,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* FOOTER SECTION */}
-      <FooterSection visitCount={visitCount} todayVisits={todayVisits} setPage={handleNavigation} />
+      <FooterSection setPage={handleNavigation} />
     </div>
   );
 }
