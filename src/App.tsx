@@ -1066,7 +1066,7 @@ function HeroSection() {
   );
 }
 
-function FooterSection({ visitCount, setPage }: { visitCount: number; setPage: (page: string) => void }) {
+function FooterSection({ visitCount, todayVisits, setPage }: { visitCount: number; todayVisits: number; setPage: (page: string) => void }) {
   return (
     <footer className="w-full bg-white/80 border-t border-slate-200 py-4 flex flex-col md:flex-row items-center justify-between px-6 gap-3">
       <div className="flex items-center gap-2">
@@ -1089,6 +1089,7 @@ function FooterSection({ visitCount, setPage }: { visitCount: number; setPage: (
       <div className="flex items-center gap-2 text-slate-600 text-xs">
         <span className="bg-slate-100 px-2 py-1 rounded-full">
           👁️ This website has been visited <span className="font-bold text-slate-800">{visitCount.toLocaleString()}</span> times
+          {todayVisits > 0 && <span className="text-slate-500"> ({todayVisits} {todayVisits === 1 ? 'visit' : 'visits'} today)</span>}
         </span>
       </div>
       
@@ -1214,6 +1215,7 @@ export default function App() {
   
   // Visitor counter state
   const [visitCount, setVisitCount] = useState(0);
+  const [todayVisits, setTodayVisits] = useState(0);
   
   // GoatCounter visitor tracking
   useEffect(() => {
@@ -1247,8 +1249,15 @@ export default function App() {
           const data = await response.json();
           console.log('🐐 GoatCounter Debug - Response data:', data);
           const totalVisits = data.total || 0;  // Use 'total' property from GoatCounter API
+          
+          // Extract today's visits from the stats array
+          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+          const todayStats = data.stats?.find(stat => stat.day === today);
+          const todaysVisits = todayStats?.daily || 0;
+          
           setVisitCount(totalVisits);
-          console.log(`✅ GoatCounter API success: ${totalVisits} total visits`);
+          setTodayVisits(todaysVisits);
+          console.log(`✅ GoatCounter API success: ${totalVisits} total visits, ${todaysVisits} today`);
         } else {
           const errorText = await response.text();
           console.log(`❌ GoatCounter API error: ${response.status} ${response.statusText}`);
@@ -2745,7 +2754,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* FOOTER SECTION */}
-      <FooterSection visitCount={visitCount} setPage={handleNavigation} />
+      <FooterSection visitCount={visitCount} todayVisits={todayVisits} setPage={handleNavigation} />
     </div>
   );
 }
