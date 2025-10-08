@@ -1220,53 +1220,64 @@ export default function App() {
   // GoatCounter visitor tracking
   useEffect(() => {
     const initializeVisitorCount = async () => {
-      const token = import.meta.env.VITE_GOATCOUNTER_TOKEN;
+      // Option 1: Try Netlify Analytics API (if site ID and token available)
+      const netlifyToken = import.meta.env.VITE_NETLIFY_TOKEN;
+      const netlifySiteId = import.meta.env.VITE_NETLIFY_SITE_ID;
       
-      console.log('🐐 GoatCounter Debug - Token exists:', !!token);
-      console.log('🐐 GoatCounter Debug - Token length:', token?.length || 0);
-      
-      if (!token) {
-        console.log('🔑 GoatCounter token not found. Add VITE_GOATCOUNTER_TOKEN to environment variables.');
-        setVisitCount(0);
-        return;
+      if (netlifyToken && netlifySiteId) {
+        try {
+          console.log('� Fetching visitor count from Netlify Analytics...');
+          
+          const response = await fetch(`https://api.netlify.com/api/v1/sites/${netlifySiteId}/analytics/page_views`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${netlifyToken}`,
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('� Netlify Analytics data:', data);
+            // Netlify returns page views data
+            const totalViews = data.data?.reduce((sum: number, day: any) => sum + day.count, 0) || 0;
+            setVisitCount(totalViews);
+            console.log(`✅ Netlify Analytics success: ${totalViews} total page views`);
+            return;
+          } else {
+            console.log(`❌ Netlify Analytics error: ${response.status} ${response.statusText}`);
+          }
+        } catch (error) {
+          console.log('❌ Netlify Analytics failed:', error);
+        }
       }
       
-      try {
-        console.log('🔄 Fetching visitor count from GoatCounter...');
+      // Fallback: Simple localStorage counter
+      console.log('📊 Using simple visit counter (Netlify Analytics not configured)');
+      const COUNTER_KEY = 'whetherweather_visits';
+      const SESSION_KEY = 'whetherweather_session';
+      
+      // Check if this is a new session
+      const currentSession = sessionStorage.getItem(SESSION_KEY);
+      const sessionId = Date.now().toString();
+      
+      if (!currentSession) {
+        // New session - increment counter
+        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+        const newCount = currentCount + 1;
         
-        const response = await fetch('https://michaelde.goatcounter.com/api/v0/stats/total', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          }
-        });
+        localStorage.setItem(COUNTER_KEY, newCount.toString());
+        sessionStorage.setItem(SESSION_KEY, sessionId);
+        setVisitCount(newCount);
+        setTodayVisits(1); // At least 1 visit today (this session)
         
-        console.log('🐐 GoatCounter Debug - Response status:', response.status);
-        console.log('🐐 GoatCounter Debug - Response ok:', response.ok);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🐐 GoatCounter Debug - Response data:', data);
-          const totalVisits = data.total || 0;  // Use 'total' property from GoatCounter API
-          
-          // Extract today's visits from the stats array
-          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-          const todayStats = data.stats?.find(stat => stat.day === today);
-          const todaysVisits = todayStats?.daily || 0;
-          
-          setVisitCount(totalVisits);
-          setTodayVisits(todaysVisits);
-          console.log(`✅ GoatCounter API success: ${totalVisits} total visits, ${todaysVisits} today`);
-        } else {
-          const errorText = await response.text();
-          console.log(`❌ GoatCounter API error: ${response.status} ${response.statusText}`);
-          console.log('🐐 GoatCounter Debug - Error response:', errorText);
-          setVisitCount(0);
-        }
-      } catch (error) {
-        console.log('❌ GoatCounter API failed:', error);
-        setVisitCount(0);
+        console.log(`📊 New visit counted: ${newCount}`);
+      } else {
+        // Existing session - show current count
+        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+        setVisitCount(currentCount);
+        setTodayVisits(0); // Don't show "today" for returning session
+        console.log(`📊 Current visit count: ${currentCount}`);
       }
     };
     
