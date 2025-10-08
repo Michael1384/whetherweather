@@ -1215,68 +1215,44 @@ export default function App() {
   // Visitor counter state
   const [visitCount, setVisitCount] = useState(0);
   
-  // Initialize visitor count using GoatCounter API
+  // GoatCounter visitor tracking
   useEffect(() => {
-    const fetchGoatCounterStats = async () => {
-      try {
-        // Method 1: Try GoatCounter API to get total pageviews
-        // GoatCounter API endpoint for getting stats with authentication
-        const apiToken = import.meta.env.VITE_GOATCOUNTER_TOKEN;
-        
-        if (apiToken) {
-          const response = await fetch('https://michaelde.goatcounter.com/api/v0/stats/total', {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${apiToken}`,
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.count) {
-              setVisitCount(data.count);
-              console.log(`✅ GoatCounter total visits: ${data.count}`);
-              return;
-            }
-          } else {
-            console.log(`GoatCounter API error: ${response.status} ${response.statusText}`);
-          }
-        } else {
-          console.log('No GoatCounter API token found in environment variables');
-        }
-      } catch (error) {
-        console.log('GoatCounter API failed, using fallback...');
+    const initializeVisitorCount = async () => {
+      const token = import.meta.env.VITE_GOATCOUNTER_TOKEN;
+      
+      if (!token) {
+        console.log('🔑 GoatCounter token not found. Add VITE_GOATCOUNTER_TOKEN to environment variables.');
+        setVisitCount(0);
+        return;
       }
       
-      // Fallback: Simple localStorage counter that syncs with GoatCounter concept
-      // This will at least show visits until GoatCounter API is properly configured
-      const COUNTER_KEY = 'whetherweather_goat_fallback';
-      const SESSION_KEY = 'whetherweather_session_today';
-      
-      // Create session key based on today's date
-      const today = new Date().toDateString();
-      const currentSession = sessionStorage.getItem(SESSION_KEY);
-      
-      if (currentSession !== today) {
-        // New day/session - increment counter
-        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
-        const newCount = currentCount + 1;
+      try {
+        console.log('🔄 Fetching visitor count from GoatCounter...');
         
-        localStorage.setItem(COUNTER_KEY, newCount.toString());
-        sessionStorage.setItem(SESSION_KEY, today);
-        setVisitCount(newCount);
+        const response = await fetch('https://michaelde.goatcounter.com/api/v0/stats/total', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        });
         
-        console.log(`📊 New visit counted (fallback): ${newCount}`);
-      } else {
-        // Same session today - show existing count
-        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
-        setVisitCount(currentCount);
-        console.log(`📊 Today's visit count (fallback): ${currentCount}`);
+        if (response.ok) {
+          const data = await response.json();
+          const totalVisits = data.count || 0;
+          setVisitCount(totalVisits);
+          console.log(`✅ GoatCounter API success: ${totalVisits} total visits`);
+        } else {
+          console.log(`❌ GoatCounter API error: ${response.status} ${response.statusText}`);
+          setVisitCount(0);
+        }
+      } catch (error) {
+        console.log('❌ GoatCounter API failed:', error);
+        setVisitCount(0);
       }
     };
     
-    fetchGoatCounterStats();
+    initializeVisitorCount();
   }, []);
   
   // Store previous page to detect navigation away from results
