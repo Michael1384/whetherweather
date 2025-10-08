@@ -1239,7 +1239,7 @@ export default function App() {
         
         if (response.ok) {
           const data = await response.json();
-          const totalVisits = data.count || 0;
+          const totalVisits = data.total || 0;  // Use 'total' property from GoatCounter API
           setVisitCount(totalVisits);
           console.log(`✅ GoatCounter API success: ${totalVisits} total visits`);
         } else {
