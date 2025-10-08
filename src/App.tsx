@@ -1220,6 +1220,9 @@ export default function App() {
     const initializeVisitorCount = async () => {
       const token = import.meta.env.VITE_GOATCOUNTER_TOKEN;
       
+      console.log('🐐 GoatCounter Debug - Token exists:', !!token);
+      console.log('🐐 GoatCounter Debug - Token length:', token?.length || 0);
+      
       if (!token) {
         console.log('🔑 GoatCounter token not found. Add VITE_GOATCOUNTER_TOKEN to environment variables.');
         setVisitCount(0);
@@ -1237,13 +1240,19 @@ export default function App() {
           }
         });
         
+        console.log('🐐 GoatCounter Debug - Response status:', response.status);
+        console.log('🐐 GoatCounter Debug - Response ok:', response.ok);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('🐐 GoatCounter Debug - Response data:', data);
           const totalVisits = data.total || 0;  // Use 'total' property from GoatCounter API
           setVisitCount(totalVisits);
           console.log(`✅ GoatCounter API success: ${totalVisits} total visits`);
         } else {
+          const errorText = await response.text();
           console.log(`❌ GoatCounter API error: ${response.status} ${response.statusText}`);
+          console.log('🐐 GoatCounter Debug - Error response:', errorText);
           setVisitCount(0);
         }
       } catch (error) {
