@@ -1215,17 +1215,20 @@ export default function App() {
   // Visitor counter state
   const [visitCount, setVisitCount] = useState(0);
   
-  // Initialize visitor count on app load with GoatCounter
+  // Initialize visitor count using GoatCounter API
   useEffect(() => {
-    const trackVisit = async () => {
+    const fetchGoatCounterStats = async () => {
       try {
-        // Method 1: Try GoatCounter API (you'll need to set up a free account)
-        // Go to https://www.goatcounter.com/ and create a free account
-        // Replace 'your-site-code' with your actual GoatCounter site code
-        try {
+        // Method 1: Try GoatCounter API to get total pageviews
+        // GoatCounter API endpoint for getting stats with authentication
+        const apiToken = import.meta.env.VITE_GOATCOUNTER_TOKEN;
+        
+        if (apiToken) {
           const response = await fetch('https://michaelde.goatcounter.com/api/v0/stats/total', {
+            method: 'GET',
             headers: {
-              'Authorization': 'Bearer YOUR_API_TOKEN', // You'll need to set this up
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${apiToken}`,
             }
           });
           
@@ -1233,45 +1236,47 @@ export default function App() {
             const data = await response.json();
             if (data && data.count) {
               setVisitCount(data.count);
-              console.log(`GoatCounter visits: ${data.count}`);
+              console.log(`✅ GoatCounter total visits: ${data.count}`);
               return;
             }
+          } else {
+            console.log(`GoatCounter API error: ${response.status} ${response.statusText}`);
           }
-        } catch (error) {
-          console.log('GoatCounter API not configured yet, using simple counter...');
-        }
-        
-        // Method 2: Simple, honest localStorage counter starting from 0
-        const globalKey = 'whetherweather_honest_counter';
-        const sessionKey = 'whetherweather_session_' + new Date().toDateString();
-        
-        // Check if this is a unique visit today
-        const hasVisitedToday = localStorage.getItem(sessionKey);
-        
-        if (!hasVisitedToday) {
-          // This is a new unique visit today
-          const currentCount = parseInt(localStorage.getItem(globalKey) || '0');
-          const newCount = currentCount + 1;
-          
-          localStorage.setItem(globalKey, newCount.toString());
-          localStorage.setItem(sessionKey, 'true');
-          setVisitCount(newCount);
-          
-          console.log(`New visit counted: ${newCount}`);
         } else {
-          // Return existing count for today
-          const currentCount = parseInt(localStorage.getItem(globalKey) || '0');
-          setVisitCount(currentCount);
-          console.log(`Returning visit count: ${currentCount}`);
+          console.log('No GoatCounter API token found in environment variables');
         }
-        
       } catch (error) {
-        console.error('Error tracking visit:', error);
-        setVisitCount(0);
+        console.log('GoatCounter API failed, using fallback...');
+      }
+      
+      // Fallback: Simple localStorage counter that syncs with GoatCounter concept
+      // This will at least show visits until GoatCounter API is properly configured
+      const COUNTER_KEY = 'whetherweather_goat_fallback';
+      const SESSION_KEY = 'whetherweather_session_today';
+      
+      // Create session key based on today's date
+      const today = new Date().toDateString();
+      const currentSession = sessionStorage.getItem(SESSION_KEY);
+      
+      if (currentSession !== today) {
+        // New day/session - increment counter
+        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+        const newCount = currentCount + 1;
+        
+        localStorage.setItem(COUNTER_KEY, newCount.toString());
+        sessionStorage.setItem(SESSION_KEY, today);
+        setVisitCount(newCount);
+        
+        console.log(`📊 New visit counted (fallback): ${newCount}`);
+      } else {
+        // Same session today - show existing count
+        const currentCount = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+        setVisitCount(currentCount);
+        console.log(`📊 Today's visit count (fallback): ${currentCount}`);
       }
     };
     
-    trackVisit();
+    fetchGoatCounterStats();
   }, []);
   
   // Store previous page to detect navigation away from results
